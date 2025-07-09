@@ -1,0 +1,14 @@
+# Example configuration for distributed average consensus
+nodes:
+  node1: [127.0.0.1, 5001]
+  node2: [127.0.0.1, 5002]
+  node3: [127.0.0.1, 5003]
+  node4: [127.0.0.1, 5004]
+  node5: [127.0.0.1, 5005]
+
+model:
+  path: "config/model.pth"
+
+test_data:
+  path: "config/test_dataset.pth"
+  index: 0
