@@ -1,0 +1,18 @@
+# tmuxinator config for running distributed consensus simulation
+# Save as .tmuxinator.yml and run with: tmuxinator start -p .tmuxinator.yml
+name: distributed-consensus
+root: /home/marko/PROJECTS/distributed_computation
+pre_window: source venv/bin/activate
+windows:
+  - nodes:
+      layout: even-horizontal
+      synchronize: after
+      panes:
+        - python node.py node1
+        - python node.py node2
+        - python node.py node3
+  - central:
+      panes:
+        - |
+          sleep 3
+          python central.py config.yaml
