@@ -7,6 +7,8 @@ from collections import defaultdict
 from gnn_splitter import GNNSplitter
 from torch import Tensor
 
+from led_matrix import LEDMatrix
+
 
 class Node:
     def __init__(self, node_id: str):
@@ -21,6 +23,8 @@ class Node:
         self.layer = 0  # The current layer of the GNN being processed.
         self.received = defaultdict(dict)  # Values received from neighbors, indexed by iteration number.
                                            # Also used for synchronization.
+
+        self.led = LEDMatrix()
 
     def initialize_GNN(self):
         # Load model configuration from the received config and set up the GNN model.
@@ -82,11 +86,12 @@ class Node:
         # Continuously exchange values with neighbors and update representation.
         while self.layer < self.model.num_layers:
             await self.exchange_and_update()
-            print(f"Layer {self.layer} output: {self.output.item()}\n")
+            print(f"Layer {self.layer} output: {self.output}\n")
+            self.led.set_percentage(self.output / 4, 40, (255, 0, 0), "l2r")
             self.layer += 1
 
         print()
-        print(f"Final value: {self.value.item()}")
+        print(f"Final value: {self.value}")
 
     async def exchange_and_update(self):
         # Send value to all neighbors.
