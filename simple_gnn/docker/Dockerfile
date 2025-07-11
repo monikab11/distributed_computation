@@ -16,7 +16,6 @@ RUN apt-get update && \
 RUN pip3 install --upgrade pip
 RUN pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu
 RUN pip3 install torch-geometric
-RUN pip3 install pyg_lib torch_scatter torch_sparse torch_cluster torch_spline_conv -f https://data.pyg.org/whl/torch-2.7.0+cpu.html
 RUN pip3 install pyyaml matplotlib networkx tqdm codetiming
 RUN pip3 install rpi_ws281x
 
@@ -28,10 +27,6 @@ WORKDIR /workspace/rpi_ws281x
 RUN sed -i 's/^#define WIDTH.*/#define WIDTH                   8/' main.c && \
     sed -i 's/^#define HEIGHT.*/#define HEIGHT                  4/' main.c
 RUN scons
-
-# RUN mkdir build && cd build && cmake -D BUILD_SHARED=OFF -D BUILD_TEST=ON ..
-# RUN cmake --build .
-# RUN make install
 
 # Clone git repositories
 WORKDIR /workspace
