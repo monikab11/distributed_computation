@@ -11,11 +11,10 @@ import numpy as np
 import torch
 import torch_geometric.utils as tg_utils
 import yaml
-from torch_geometric.data import InMemoryDataset
 from matplotlib import pyplot as plt
+from torch_geometric.data import InMemoryDataset
 
 from my_graphs_dataset import GraphDataset
-
 
 
 class SimpleDataset(InMemoryDataset):
@@ -71,9 +70,7 @@ class SimpleDataset(InMemoryDataset):
 
     @property
     def hash_representation(self):
-        dataset_props = json.dumps(
-            [self.loader.hashable_selection, self.feature_dims, self.loader.seed]
-        )
+        dataset_props = json.dumps([self.loader.hashable_selection, self.feature_dims, self.loader.seed])
         sha256_hash = hashlib.sha256(dataset_props.encode("utf-8")).digest()
         hash_string = base64.urlsafe_b64encode(sha256_hash).decode("utf-8")[:10]
         return hash_string
@@ -120,10 +117,8 @@ class SimpleDataset(InMemoryDataset):
         # "one": lambda g: dict.fromkeys(g.nodes(), 1),
         "A_matrix_row": lambda g: SimpleDataset.A_matrix_row(g, 5),
         # "random": lambda g: nx.random_layout(g, seed=np.random), # This works because GraphDataset loader sets the seed
-
     }
     # *************************
-
 
     # Make the data.
     def make_data(self, G):
@@ -164,6 +159,7 @@ class SimpleDataset(InMemoryDataset):
 
         return feature_dims
 
+
 def inspect_dataset(dataset):
     if isinstance(dataset, InMemoryDataset):
         dataset_name = dataset.__repr__()
@@ -186,7 +182,7 @@ def inspect_dataset(dataset):
     print()
 
 
-def inspect_graphs(dataset, graphs:int | list=1):
+def inspect_graphs(dataset, graphs: int | list = 1):
     """
     Inspect and display information about graphs in a dataset.
 
@@ -210,7 +206,7 @@ def inspect_graphs(dataset, graphs:int | list=1):
         graphs = random.sample(range(len(dataset)), graphs)
 
     for i in graphs:
-    # for i in random.sample(range(len(dataset)), num_graphs):
+        # for i in random.sample(range(len(dataset)), num_graphs):
         data = dataset[i]  # Get a random graph object
 
         print()
@@ -247,7 +243,6 @@ def main():
 
     inspect_dataset(dataset)
     inspect_graphs(dataset, graphs=[1])
-
 
 
 if __name__ == "__main__":

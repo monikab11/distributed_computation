@@ -1,6 +1,5 @@
 import random
 import time
-import warnings
 from typing import List, Optional
 
 import networkx as nx
@@ -40,7 +39,7 @@ class GNNSplitter:
             xj = torch.cat(xj_list, dim=0)  # Stack neighbors' features
             xj = xj.mean(dim=0, keepdim=True)
 
-            data = Data(x=(xj, xi), edge_index=torch.tensor([[0,0]], dtype=torch.long).t()) # type: ignore
+            data = Data(x=(xj, xi), edge_index=torch.tensor([[0, 0]], dtype=torch.long).t())  # type: ignore
             out = self(layer, data.x, data.edge_index)
             if layer != self.final_layer_idx:
                 intermediate = self(self.final_layer_idx, out, data.edge_index)
@@ -49,7 +48,7 @@ class GNNSplitter:
         else:
             raise NotImplementedError(f"{self.model.__class__.__name__} is not supported for layer computation.")
 
-        return out, intermediate # type: ignore
+        return out, intermediate  # type: ignore
 
     def forward(
         self,
@@ -91,8 +90,7 @@ class GNNSplitter:
         norm = self.model.norms[layer_idx]
 
         if self.model.supports_edge_weight and self.model.supports_edge_attr:
-            x = conv(x, edge_index, edge_weight=edge_weight,
-                        edge_attr=edge_attr)
+            x = conv(x, edge_index, edge_weight=edge_weight, edge_attr=edge_attr)
         elif self.model.supports_edge_weight:
             x = conv(x, edge_index, edge_weight=edge_weight)
         elif self.model.supports_edge_attr:
@@ -110,7 +108,7 @@ class GNNSplitter:
             if self.model.act is not None and not self.model.act_first:
                 x = self.model.act(x)
             x = self.model.dropout(x)
-            if hasattr(self.model, 'jk'):
+            if hasattr(self.model, "jk"):
                 self.xs[layer_idx] = x
 
         self.last_layer_called = layer_idx
@@ -125,15 +123,15 @@ class GNNSplitter:
         edge_attr: OptTensor = None,
         batch: OptTensor = None,
         batch_size: Optional[int] = None,
-    ) -> tuple[Tensor,  List[Tensor]]:
+    ) -> tuple[Tensor, List[Tensor]]:
         r"""Forward pass for all layers."""
         xs = []
         for i in range(len(self.model.convs)):
             x = self.forward(i, x, edge_index, edge_weight, edge_attr, batch, batch_size)
             xs.append(x)
 
-        x = self.model.jk(self.xs) if hasattr(self.model, 'jk') else x
-        x = self.model.lin(x) if hasattr(self.model, 'lin') else x
+        x = self.model.jk(self.xs) if hasattr(self.model, "jk") else x
+        x = self.model.lin(x) if hasattr(self.model, "lin") else x
 
         return x, xs
 
@@ -152,7 +150,7 @@ def main():
             break
     edge_index = torch.tensor(list(G.edges), dtype=torch.long).t().contiguous()
     # Add reverse edges for undirected graph
-    edge_index = torch.cat([edge_index, edge_index[[1,0],:]], dim=1)
+    edge_index = torch.cat([edge_index, edge_index[[1, 0], :]], dim=1)
 
     # 2. Add random features to each node (3 features per node)
     num_node_features = 3
@@ -181,7 +179,9 @@ def main():
     print(f"Full model output: {out_full}")
     print(f"Split model output: {out_split}")
     print(f"Difference: {torch.abs(out_full - out_split).max().item()} (should be close to 0)")
-    print(f"Full model time: {t1e-t1s:.6f}s, Split model time: {t2e-t2s:.6f}s, SPEEDUP: {(t1e-t1s)/(t2e-t2s):.2f}x")
+    print(
+        f"Full model time: {t1e - t1s:.6f}s, Split model time: {t2e - t2s:.6f}s, SPEEDUP: {(t1e - t1s) / (t2e - t2s):.2f}x"
+    )
     print()
 
     # 5. Get indices of node 0's neighbors
@@ -206,7 +206,7 @@ def main():
                     neigh_feats = x[neigh_idx]
                 else:
                     node_x = all_out[node]
-                    neigh_feats = hist_split[layer-1][neigh_idx]
+                    neigh_feats = hist_split[layer - 1][neigh_idx]
 
                 neigh_feats = [tensor.unsqueeze(0) for tensor in neigh_feats]
                 out = split_model.update_node(layer, node_x, neigh_feats)
@@ -218,7 +218,8 @@ def main():
     print(f"CASE A output: {out_a}")
     print(f"CASE B output: {out_b}")
     print(f"Difference: {torch.abs(out_a - out_b).max().item()} (should be close to 0)")
-    print(f"CASE A time: {t1-t0:.6f}s, CASE B time: {t3-t2:.6f}s, SPEEDUP: {(t1-t0)/(t3-t2):.2f}x")
+    print(f"CASE A time: {t1 - t0:.6f}s, CASE B time: {t3 - t2:.6f}s, SPEEDUP: {(t1 - t0) / (t3 - t2):.2f}x")
+
 
 if __name__ == "__main__":
     main()

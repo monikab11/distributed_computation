@@ -1,26 +1,24 @@
 import asyncio
 import importlib
-import sys
 import pickle
+import sys
 from collections import defaultdict
 
-from torch import Tensor
-import yaml
-
 from gnn_splitter import GNNSplitter
+from torch import Tensor
 
 
 class Node:
     def __init__(self, node_id: str):
         self.node_id = f"node{node_id}"  # Just for printing.
         self.port = 5000 + int(node_id)  # Each node has a unique port starting from 5000, and we use it to ID the node.
-        self.server = None               # Server used to receive messages from neighbors.
+        self.server = None  # Server used to receive messages from neighbors.
 
         self.config = {}  # Configuration holding the model properties, neighbors, and initial features.
 
-        self.value = Tensor()   # The current representation of the node.
-        self.output = Tensor()  # The output of the GNN after processing, and intermediate processed values of each layer.
-        self.layer = 0          # The current layer of the GNN being processed.
+        self.value = Tensor()  # The current representation of the node.
+        self.output = Tensor()  # The interpretable output of the GNN after each layer.
+        self.layer = 0  # The current layer of the GNN being processed.
         self.received = defaultdict(dict)  # Values received from neighbors, indexed by iteration number.
                                            # Also used for synchronization.
 
@@ -28,10 +26,12 @@ class Node:
         # Load model configuration from the received config and set up the GNN model.
         model_config = self.config["model"]
         GNN = getattr(importlib.import_module("torch_geometric.nn"), model_config["architecture"])
-        self.model = GNN(in_channels=model_config["in_channels"],
-                        hidden_channels=model_config["hidden_channels"],
-                        num_layers=model_config["num_layers"],
-                        out_channels=model_config["out_channels"])
+        self.model = GNN(
+            in_channels=model_config["in_channels"],
+            hidden_channels=model_config["hidden_channels"],
+            num_layers=model_config["num_layers"],
+            out_channels=model_config["out_channels"],
+        )
         self.model.load_state_dict(model_config["state_dict"])
         self.distributed_model = GNNSplitter(self.model)
 
@@ -45,6 +45,7 @@ class Node:
 
         # Define a callback function to handle the incoming config.
         config_received = asyncio.Event()
+
         async def handle_config(reader, writer):
             data = await reader.read()
             handler_data["config"] = pickle.loads(data)
@@ -54,7 +55,7 @@ class Node:
 
         # Open a server to listen for the config from the central node.
         # We need to listen on our own port.
-        server = await asyncio.start_server(handle_config, '0.0.0.0', port)
+        server = await asyncio.start_server(handle_config, "0.0.0.0", port)
         print(f"Node {self.node_id} waiting for config on port {port}")
 
         # Wait for the config to be received.
@@ -63,7 +64,6 @@ class Node:
         await server.wait_closed()
 
         return handler_data["config"]
-
 
     async def start(self):
         # Wait for config from central node.
@@ -75,7 +75,7 @@ class Node:
 
         # Start a server to receive messages from neighbors.
         # We are again listening on our own port.
-        self.server = await asyncio.start_server(self.receive_value, '0.0.0.0', self.port)
+        self.server = await asyncio.start_server(self.receive_value, "0.0.0.0", self.port)
         print(f"Node {self.node_id} listening on port {self.port}")
         await asyncio.sleep(1)  # Wait for all nodes to start
 
@@ -99,7 +99,9 @@ class Node:
             await asyncio.sleep(0.1)
 
         # Update value (average consensus)
-        self.value, self.output = self.distributed_model.update_node(self.layer, self.value, list(self.received[self.layer].values()))
+        self.value, self.output = self.distributed_model.update_node(
+            self.layer, self.value, list(self.received[self.layer].values())
+        )
 
     async def send_value(self, neighbor_addr_port):
         # Connect to the neighbor with the given address and port.
@@ -108,14 +110,11 @@ class Node:
         if self.value.shape[1] <= 5:
             print(f"[{self.port}->{neighbor_addr_port[1]}] h^{self.layer}={self.value}")
         else:
-            print(f"[{self.port}->{neighbor_addr_port[1]}] h^{self.layer}=[... >5, mean={self.value.mean().item():.3f}]")
+            print(
+                f"[{self.port}->{neighbor_addr_port[1]}] h^{self.layer}=[... >5, mean={self.value.mean().item():.3f}]"
+            )
 
-
-        msg = {
-            "layer": self.layer,
-            "sender": self.port,
-            "value": self.value
-        }
+        msg = {"layer": self.layer, "sender": self.port, "value": self.value}
         writer.write(pickle.dumps(msg))
         await writer.drain()
         writer.close()
@@ -149,6 +148,7 @@ def main():
     # Initialize the node and then start it.
     node = Node(node_index)
     asyncio.run(node.start())
+
 
 if __name__ == "__main__":
     main()

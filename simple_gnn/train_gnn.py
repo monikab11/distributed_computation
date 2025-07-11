@@ -1,12 +1,13 @@
-from tqdm import tqdm
-from dataset import SimpleDataset
-from my_graphs_dataset import GraphDataset
-from pathlib import Path
 import random
+from pathlib import Path
+
 import numpy as np
 import torch
+from dataset import SimpleDataset
 from torch_geometric.nn import GCN, GIN, GraphSAGE
+from tqdm import tqdm
 
+from my_graphs_dataset import GraphDataset
 
 ## Set up these values.
 device = "cpu"
@@ -29,17 +30,15 @@ np.random.seed(seed)
 torch.manual_seed(seed)
 dataset = dataset.shuffle()
 
-train_dataset = dataset[:round(len(dataset) * split_ratio)]
-test_dataset = dataset[round(len(dataset) * split_ratio):]
+train_dataset = dataset[: round(len(dataset) * split_ratio)]
+test_dataset = dataset[round(len(dataset) * split_ratio) :]
 
 torch.save(list(test_dataset), root / "config" / "test_dataset.pth")
 
 # Load the model.
-model = GNN(in_channels=dataset.num_features,
-            hidden_channels=hidden_channels,
-            num_layers=num_layers,
-            out_channels=1
-            ).to(device)
+model = GNN(
+    in_channels=dataset.num_features, hidden_channels=hidden_channels, num_layers=num_layers, out_channels=1
+).to(device)
 
 # Set up the optimizer.
 optimizer = torch.optim.Adam(model.parameters(), lr=0.0001)
@@ -75,11 +74,14 @@ with torch.no_grad():
 print(f"Test Loss: {total_loss / len(test_dataset)}")
 
 # Save the model and its configuration.
-torch.save({
-    "architecture": GNN.__name__,
-    "in_channels": dataset.num_features,
-    "hidden_channels": hidden_channels,
-    "num_layers": num_layers,
-    "out_channels": 1,
-    "state_dict": model.state_dict(),
-}, root / "config" / "model.pth")
+torch.save(
+    {
+        "architecture": GNN.__name__,
+        "in_channels": dataset.num_features,
+        "hidden_channels": hidden_channels,
+        "num_layers": num_layers,
+        "out_channels": 1,
+        "state_dict": model.state_dict(),
+    },
+    root / "config" / "model.pth",
+)
