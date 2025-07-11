@@ -3,6 +3,8 @@ import importlib
 import pickle
 import sys
 from collections import defaultdict
+import time
+import platform
 
 from gnn_splitter import GNNSplitter
 from torch import Tensor
@@ -24,7 +26,26 @@ class Node:
         self.received = defaultdict(dict)  # Values received from neighbors, indexed by iteration number.
                                            # Also used for synchronization.
 
+        # Check if this is running on Raspberry Pi.
+        if platform.uname().machine == "aarch64":
+            from led_matrix import LEDMatrix
+        else:
+            class LEDMatrix:
+                def __init__(self):
+                    pass
+
+                def set_percentage(self, percent, resolution, base_color, mode='l2r', color_space='rgb'):
+                    pass
+
+                def exit(self):
+                    pass
         self.led = LEDMatrix()
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.led.exit()
 
     def initialize_GNN(self):
         # Load model configuration from the received config and set up the GNN model.
@@ -87,11 +108,12 @@ class Node:
         while self.layer < self.model.num_layers:
             await self.exchange_and_update()
             print(f"Layer {self.layer} output: {self.output}\n")
-            self.led.set_percentage(self.output / 4, 40, (255, 0, 0), "l2r")
+            self.led.set_percentage(self.output / 4, 800, (255, 0, 0), "l2r")
             self.layer += 1
+            time.sleep(2)
 
         print()
-        print(f"Final value: {self.value}")
+        print(f"Final value: {self.value.item()}")
 
     async def exchange_and_update(self):
         # Send value to all neighbors.
@@ -151,8 +173,9 @@ def main():
         node_index = sys.argv[1]
 
     # Initialize the node and then start it.
-    node = Node(node_index)
-    asyncio.run(node.start())
+    with Node(node_index) as node:
+        asyncio.run(node.start())
+
 
 
 if __name__ == "__main__":

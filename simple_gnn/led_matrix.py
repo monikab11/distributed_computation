@@ -107,7 +107,7 @@ class LEDMatrix(object):
 
         self._set_pixels(pixels)
 
-    def set_percentage(self, percent, resolution, base_color, mode, color_space='rgb'):
+    def set_percentage(self, percent, resolution, base_color, mode='l2r', color_space='rgb'):
         """
         Set the percentage of the LED strip with a specific color.
 
@@ -126,6 +126,10 @@ class LEDMatrix(object):
 
         levels = resolution // self.config['width']
 
+        # I think the minus 1 here and plus 1 below is prioritize higher ranges of discrete values over lower ones.
+        # This way, when the percent is close to 1, it will be more likely to light up the last LED. This in turn causes
+        # that for percent 0, the first bar is dimly lit. The decision was to show even 0 percent as color to signal
+        # that LEDs are working.
         if mode == 'l2r':
             max_val = levels * self.config['width'] - 1
         elif mode == 'center':
@@ -140,7 +144,7 @@ class LEDMatrix(object):
                 color = base_color
             else:
                 step = (x % levels + 1) / levels
-                color = (base_color[0], int(round(base_color[1] * step)), base_color[2])
+                color = (base_color[0], base_color[1], int(round(base_color[2] * step)))
 
             if mode == 'l2r':
                 pixels = self.add_line(pixels, i, color, color_space='hsv')
