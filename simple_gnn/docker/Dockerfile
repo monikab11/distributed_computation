@@ -4,11 +4,15 @@ FROM python:3.10-slim
 # Install system dependencies
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
+        avahi-daemon \
+        dbus \
         git \
         build-essential \
         tmux \
         curl \
         openssh-client \
+        iputils-ping \
+        libnss-mdns \
         scons \
     && rm -rf /var/lib/apt/lists/*
 
@@ -36,5 +40,7 @@ RUN git clone https://github.com/mkrizmancic/distributed_computation.git
 # Build and install
 RUN cd /workspace/my_graphs_dataset && pip3 install -e .
 
+RUN apt-get update && apt-get install -y libnss-mdns
+
 # Default command
-CMD ["bash"]
+CMD ["sh", "-c", "service dbus start && /usr/sbin/avahi-daemon --daemonize && exec /bin/bash"]
