@@ -37,7 +37,7 @@ class Node:
                 def set_percentage(self, percent, resolution, base_color, mode='l2r', color_space='rgb'):
                     pass
 
-                def exit(self):
+                def off(self):
                     pass
         self.led = LEDMatrix()
 
@@ -45,7 +45,12 @@ class Node:
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        self.led.exit()
+        # Always clean up the LED matrix
+        self.led.off()
+
+        # If an exception occurred, re-raise it after cleanup
+        if exc_type is not None:
+            raise exc_val
 
     def initialize_GNN(self):
         # Load model configuration from the received config and set up the GNN model.
