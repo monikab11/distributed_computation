@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
-import sys
-import signal
 import colorsys
-import time
-import numpy as np
-from rpi_ws281x import PixelStrip, Color
 import random
+import signal
+import sys
+import time
+
+import numpy as np
+from rpi_ws281x import Color, PixelStrip
 
 # LED strip configuration:
 LED_HEIGHT = 4        # Number of LED pixel rows.

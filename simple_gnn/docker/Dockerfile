@@ -24,23 +24,24 @@ RUN pip3 install pyyaml matplotlib networkx tqdm codetiming
 RUN pip3 install rpi_ws281x
 
 # Set up RGB shield
-WORKDIR /workspace
+RUN mkdir -p /root/workspace
+WORKDIR /root/workspace
 RUN git clone https://github.com/jgarff/rpi_ws281x.git
-WORKDIR /workspace/rpi_ws281x
+WORKDIR /root/workspace/rpi_ws281x
 
 RUN sed -i 's/^#define WIDTH.*/#define WIDTH                   8/' main.c && \
     sed -i 's/^#define HEIGHT.*/#define HEIGHT                  4/' main.c
 RUN scons
 
 # Clone git repositories
-WORKDIR /workspace
+WORKDIR /root/workspace
 RUN git clone https://github.com/mkrizmancic/my_graphs_dataset.git
 RUN git clone https://github.com/mkrizmancic/distributed_computation.git
 
 # Build and install
-RUN cd /workspace/my_graphs_dataset && pip3 install -e .
+RUN cd /root/workspace/my_graphs_dataset && pip3 install -e .
 
-RUN apt-get update && apt-get install -y libnss-mdns
+WORKDIR /root/workspace/distributed_computation/simple_gnn
 
 # Default command
 CMD ["sh", "-c", "service dbus start && /usr/sbin/avahi-daemon --daemonize && exec /bin/bash"]

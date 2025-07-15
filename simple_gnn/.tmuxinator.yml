@@ -8,7 +8,12 @@ windows:
       layout: even-horizontal
       synchronize: after
       panes:
-        - python3 node.py 1
+        - |
+          ssh pi@rpi0.local
+          cd /home/pi/distributed_computation/simple_gnn
+          ./docker/start_docker.sh dist_gnn_cont
+          cd /workspace/distributed_computation/simple_gnn
+          python3 node.py 1
         - python3 node.py 2
         - python3 node.py 3
         - python3 node.py 4
