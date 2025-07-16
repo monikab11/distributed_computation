@@ -22,7 +22,7 @@ def load_model(config):
 
 def load_data(config):
     # Load the dataset and the specific test data index.
-    dataset = torch.load(config["test_data"]["path"])
+    dataset = torch.load(config["test_data"]["path"], weights_only=False)
     test_data = dataset[config["test_data"]["index"]]
 
     # Extract neighboring nodes for each node in the test data.

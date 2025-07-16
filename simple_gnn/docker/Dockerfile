@@ -9,6 +9,7 @@ RUN apt-get update && \
         git \
         build-essential \
         tmux \
+        tmuxinator \
         curl \
         openssh-client \
         iputils-ping \
@@ -22,6 +23,26 @@ RUN pip3 install torch torchvision torchaudio --index-url https://download.pytor
 RUN pip3 install torch-geometric
 RUN pip3 install pyyaml matplotlib networkx tqdm codetiming
 RUN pip3 install rpi_ws281x
+
+# Copy tmux configuration
+COPY ./.tmux.conf /root/.tmux.conf
+
+# Add killp function to .bashrc
+RUN echo 'killp() {\n\
+    if [ $# -eq 0 ]; then\n\
+        echo "The command killp() needs an argument, but none was provided!"\n\
+        return\n\
+    else\n\
+        pes=$1\n\
+    fi\n\
+    for child in $(ps -o pid,ppid -ax | \\\n\
+        awk "{ if ( \\$2 == $pes ) { print \\$1 }}")\n\
+        do\n\
+            killp $child\n\
+        done\n\
+    kill -9 "$1" > /dev/null 2> /dev/null\n\
+}\n' >> /root/.bashrc
+
 
 # Set up RGB shield
 RUN mkdir -p /root/workspace
