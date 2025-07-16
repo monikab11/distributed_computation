@@ -3,7 +3,6 @@ import importlib
 import pickle
 import platform
 import sys
-import time
 from collections import defaultdict
 
 from gnn_splitter import GNNSplitter
@@ -113,7 +112,7 @@ class Node:
             print(f"Layer {self.layer} output: {self.output}\n")
             self.led.set_percentage(self.output / 4, 800, (255, 0, 0), "l2r")
             self.layer += 1
-            time.sleep(2)
+            await asyncio.sleep(2)
 
         print()
         print(f"Final value: {self.value.item()}")

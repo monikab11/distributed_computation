@@ -1,5 +1,6 @@
 import pickle
 import socket
+import sys
 
 import torch
 import yaml
@@ -34,7 +35,10 @@ def load_data(config):
     for node in G.nodes:
         # Populate the neighbors dictionary with the node addresses and ports.
         for neighbor in G.neighbors(node):
-            neighbors[list_of_nodes[node]].append(config["nodes"][list_of_nodes[neighbor]])
+            addr_and_port = config["nodes"][list_of_nodes[neighbor]]
+            if addr_and_port[0] == "same_as_central":
+                addr_and_port[0] = f"{socket.gethostname()}.local"
+            neighbors[list_of_nodes[node]].append(addr_and_port)
 
         # Add the node's initial feature vector.
         features[list_of_nodes[node]] = test_data.x[node]
@@ -43,7 +47,11 @@ def load_data(config):
 
 
 def main():
-    with open("config/config.yaml") as f:
+    if len(sys.argv) == 2:
+        config_file = f"config/{sys.argv[1]}"
+    else:
+        config_file = "config/config.yaml"
+    with open(config_file) as f:
         initial_config = yaml.safe_load(f)
 
     model_config = load_model(initial_config)

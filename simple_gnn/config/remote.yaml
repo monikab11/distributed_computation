@@ -1,0 +1,13 @@
+nodes:
+  node0: [rpi0.local, 5000]
+  node1: [rpi1.local, 5001]
+  node2: [rpi2.local, 5002]
+  node3: [rpi3.local, 5003]
+  node4: [rpi4.local, 5004]
+
+model:
+  path: "config/model.pth"
+
+test_data:
+  path: "config/test_dataset.pth"
+  index: 0

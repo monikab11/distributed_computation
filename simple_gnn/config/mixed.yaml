@@ -1,0 +1,13 @@
+nodes:
+  node0: [rpi0.local, 5000]
+  node1: [same_as_central, 5001]  # This will automatically resolve to the central node's address.
+  node2: [same_as_central, 5002]  # No need to change it.
+  node3: [same_as_central, 5003]
+  node4: [same_as_central, 5004]
+
+model:
+  path: "config/model.pth"
+
+test_data:
+  path: "config/test_dataset.pth"
+  index: 0

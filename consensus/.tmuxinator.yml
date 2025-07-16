@@ -1,8 +1,8 @@
 # tmuxinator config for running distributed consensus simulation
 # Save as .tmuxinator.yml and run with: tmuxinator start -p .tmuxinator.yml
 name: distributed-consensus
-root: /home/marko/PROJECTS/distributed_computation
-pre_window: source venv/bin/activate
+root: /home/marko/PROJECTS/distributed_computation/consensus
+pre_window: source ~/PROJECTS/graphs_venv/bin/activate
 windows:
   - nodes:
       layout: even-horizontal
