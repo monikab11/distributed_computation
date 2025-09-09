@@ -6,8 +6,12 @@ nodes:
   node4: [127.0.0.1, 5004]
 
 model:
-  path: "config/model.pth"
+  pathOld: "config/model.pth"
+  path: "config/best_model_2.pt" # "config/model.pth"
 
 test_data:
-  path: "config/test_dataset.pth"
-  index: 0
+  # path: "config/test_dataset.pth"
+  path: "Dataset/criticality_dataset_nc1.pt"
+  pathOld: "config/test_dataset.pth"
+  index: 8
+  indexOld: 0

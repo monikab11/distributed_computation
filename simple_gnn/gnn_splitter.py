@@ -23,6 +23,7 @@ class GNNSplitter:
 
     def __call__(self, layer_idx: Optional[int], *args, **kwargs):
         r"""Call the forward method of the model with the specified layer index."""
+        # print("HERE??????????????")
         if layer_idx is None:
             return self.forward_all(*args, **kwargs)
         else:
@@ -35,18 +36,34 @@ class GNNSplitter:
 
     def update_node(self, layer: int, xi: Tensor, xj_list: list[Tensor]) -> Tensor:
         if isinstance(self.model, GraphSAGE):
+            # print("UPDATING NODE")
             # xi' = W1 * xi + W2 * mean(xj)
             xj = torch.cat(xj_list, dim=0)  # Stack neighbors' features
             xj = xj.mean(dim=0, keepdim=True)
 
+            # print("UPDATING NODE 111")
             data = Data(x=(xj, xi), edge_index=torch.tensor([[0, 0]], dtype=torch.long).t())  # type: ignore
+            # print("UPDATING NODE 112")
+            # print(layer)
             out = self(layer, data.x, data.edge_index)
+            # if layer == self.final_layer_idx and hasattr(self, "scorer"):
+            if hasattr(self, "scorer"):
+                score = self.scorer(out).item()
+                return out, score
+            else:
+                return out, 0
             if layer != self.final_layer_idx:
                 intermediate = self(self.final_layer_idx, out, data.edge_index)
             else:
                 intermediate = out
         else:
             raise NotImplementedError(f"{self.model.__class__.__name__} is not supported for layer computation.")
+
+        print("OUT: ")
+        print(out)
+        print("intermediate")
+        print(intermediate)
+        print(intermediate.item())
 
         return out, intermediate.item()  # type: ignore
 
@@ -87,6 +104,8 @@ class GNNSplitter:
         #                   f"after {self.last_layer_called}. You may be skipping layers.")
 
         conv = self.model.convs[layer_idx]
+        # print("CONVVVVV ")
+        # print(conv)
         norm = self.model.norms[layer_idx]
 
         if self.model.supports_edge_weight and self.model.supports_edge_attr:
@@ -96,8 +115,12 @@ class GNNSplitter:
         elif self.model.supports_edge_attr:
             x = conv(x, edge_index, edge_attr=edge_attr)
         else:
+            # print("OVJDE SAM 54")
+            # print(x)
+            # print(edge_index)
             x = conv(x, edge_index)
 
+        # print("OVJDE SAM 6")
         if layer_idx < self.model.num_layers - 1 or self.model.jk_mode is not None:
             if self.model.act is not None and self.model.act_first:
                 x = self.model.act(x)
@@ -110,6 +133,8 @@ class GNNSplitter:
             x = self.model.dropout(x)
             if hasattr(self.model, "jk"):
                 self.xs[layer_idx] = x
+
+        # print("OVJDE SAM 7")
 
         self.last_layer_called = layer_idx
 

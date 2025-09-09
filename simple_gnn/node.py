@@ -7,6 +7,7 @@ from collections import defaultdict
 
 from gnn_splitter import GNNSplitter
 from torch import Tensor
+from gnn_model import NodeScorer
 
 
 class Node:
@@ -53,17 +54,71 @@ class Node:
         # Load model configuration from the received config and set up the GNN model.
         model_config = self.config["model"]
         GNN = getattr(importlib.import_module("torch_geometric.nn"), model_config["architecture"])
+        # print("INITIAL ")
+        # print(model_config["in_channels"])
         self.model = GNN(
             in_channels=model_config["in_channels"],
             hidden_channels=model_config["hidden_channels"],
             num_layers=model_config["num_layers"],
             out_channels=model_config["out_channels"],
         )
+        # stvori enkoder ovdje
+
+        # print("MODEL PROPS")
+        # print(self.model.in_channels)
+        # print(self.model.hidden_channels)
+        # print(self.model.num_layers)
+        # print(self.model.out_channels)
+
+
+        import torch
+        import sys
+
+        # if len(sys.argv) != 2:
+        #     print("Usage: python inspect_pt.py <path_to_file.pt>")
+        #     return
+
+        # path = sys.argv[1]
+        # print(f"Loading {path} ...")
+        # data = torch.load(path, map_location="cpu", weights_only=False)
+
+        # print("\n=== Content of the .pt file ===")
+        # if isinstance(model_config, dict):
+        #     for key, value in model_config.items():
+        #         if isinstance(value, dict):
+        #             print(f"{key}: dict with {len(value)} keys")
+        #             for subkey, subval in value.items():
+        #                 if hasattr(subval, 'shape'):
+        #                     print(f"   {subkey}: Tensor of shape {tuple(subval.shape)}")
+        #                 elif isinstance(subval, (int, float, str)):
+        #                     print(f"   {subkey}: {subval}")
+        #                 else:
+        #                     print(f"   {subkey}: {type(subval)}")
+        #         elif hasattr(value, 'shape'):
+        #             print(f"{key}: Tensor of shape {tuple(value.shape)}")
+        #         else:
+        #             print(f"{key}: {value}")
+        # else:
+        #     print("File contains:", type(data))
+        #     print(data)
+
         self.model.load_state_dict(model_config["state_dict"])
         self.distributed_model = GNNSplitter(self.model)
 
         # Load the initial feature vector for this node.
         self.value = self.config["features"].unsqueeze(0)  # Ensure it's a batch of size 1.
+        
+        print("BeFoRe")
+        self.scorer = NodeScorer(node_dim=model_config["hidden_channels"],
+                                hidden_dim=model_config["hidden_channels"])
+        self.scorer.load_state_dict(model_config["scorer"])
+        self.distributed_model.scorer = self.scorer
+        print("AfTeR")
+        
+        # print()
+        # print("FEATURES")
+        # print(self.config["features"].unsqueeze(0))
+        # print()
         print(f"Initial feature vector for node {self.node_id}: {self.value}")
 
     async def wait_for_config(self, port):
@@ -96,6 +151,8 @@ class Node:
         # Wait for config from central node.
         config = await self.wait_for_config(self.port)
         self.config = config
+        # print("CONFIG: ") 
+        # print(self.config)
 
         # Set up the GNN model and forward pass logic.
         self.initialize_GNN()
@@ -110,16 +167,21 @@ class Node:
         while self.layer < self.model.num_layers:
             await self.exchange_and_update()
             print(f"Layer {self.layer} output: {self.output}\n")
+            # TODO: ovdje implementiraj drukciju logiku
+            # npr spektar zelena - zuta - crvena, ali kako znati kako su druge obojene  
             self.led.set_percentage(self.output / 4, 800, (255, 0, 0), "l2r")
             self.layer += 1
             await asyncio.sleep(2)
 
         print()
-        print(f"Final value: {self.value.item()}")
+        # print(f"Final value: {self.value.item()}")
+        print(f"Final value: {self.output}")
 
     async def exchange_and_update(self):
         # Send value to all neighbors.
         # Use their ports to send a message.
+        # print('SENDING VALUES: ')
+        # print(self.config["neighbors"])
         for neighbor_addr_port in self.config["neighbors"]:
             await self.send_value(neighbor_addr_port)
 
@@ -128,6 +190,7 @@ class Node:
             await asyncio.sleep(0.1)
 
         # Update value (average consensus)
+        # print("HEREEEEEEEEEEEEEEEEEE UPDATE_NODE")
         self.value, self.output = self.distributed_model.update_node(
             self.layer, self.value, list(self.received[self.layer].values())
         )
