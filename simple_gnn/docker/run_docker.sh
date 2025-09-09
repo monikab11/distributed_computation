@@ -11,5 +11,5 @@ docker run \
   --volume ~/.ssh/ssh_auth_sock:/ssh-agent \
   --env SSH_AUTH_SOCK=/ssh-agent \
   --env TERM=xterm-256color \
-  --name dist_gnn_cont \
-  rpi_dist_gnn:latest
+  --name monika_cont \
+  rpi_dist_gnn:monika

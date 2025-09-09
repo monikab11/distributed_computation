@@ -57,7 +57,7 @@ RUN scons
 # Clone git repositories
 WORKDIR /root/workspace
 RUN git clone https://github.com/mkrizmancic/my_graphs_dataset.git
-RUN git clone https://github.com/mkrizmancic/distributed_computation.git
+RUN git clone https://github.com/monikab11/distributed_computation.git
 
 # Build and install
 RUN cd /root/workspace/my_graphs_dataset && pip3 install -e .

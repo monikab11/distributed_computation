@@ -57,7 +57,7 @@ Each node:
 
 ```bash
 cd docker
-docker build -t rpi_dist_gnn .
+docker build -t rpi_dist_gnn:monika --ssh default .
 ./run_docker.sh
 ```
 
