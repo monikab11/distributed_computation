@@ -4,6 +4,7 @@ import random
 import signal
 import sys
 import time
+import matplotlib.cm as cm
 
 import numpy as np
 from rpi_ws281x import Color, PixelStrip
@@ -177,6 +178,12 @@ class LEDMatrix(object):
     def interp(x, in_min, in_max, out_min, out_max):
         x = max(min(x, in_max), in_min)
         return round((x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min)
+
+    @staticmethod
+    def colormap_to_rgb(value: float, cmap_name: str = "cool"):
+        cmap = cm.get_cmap(cmap_name)
+        r, g, b, _ = cmap(value)
+        return (int(r * 255), int(g * 255), int(b * 255))
 
     def exit(self, signum=None, frame=None):
         print("Turning off LEDs and exiting.")

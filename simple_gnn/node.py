@@ -8,6 +8,7 @@ from collections import defaultdict
 from gnn_splitter import GNNSplitter
 from torch import Tensor
 from gnn_model import NodeScorer
+import matplotlib.cm as cm
 
 
 class Node:
@@ -35,6 +36,15 @@ class Node:
                 def set_percentage(self, percent, resolution, base_color, mode='l2r', color_space='rgb'):
                     pass
 
+                def colormap_to_rgb(self, value, cmap_name):
+                    # cmap = cm.get_cmap(cmap_name)
+                    # r, g, b, _ = cmap(value)
+                    # return (int(r * 255), int(g * 255), int(b * 255))
+                    pass
+
+                def set_all(self, color, color_space='rgb'):
+                    pass
+                
                 def off(self):
                     pass
         self.led = LEDMatrix()
@@ -167,9 +177,22 @@ class Node:
         while self.layer < self.model.num_layers:
             await self.exchange_and_update()
             print(f"Layer {self.layer} output: {self.output}\n")
+            # print(self.config["model"]["min_value"])
+            # print(self.config["model"]["max_value"])
+            val = self.output
+            vmin = self.config["model"]["min_value"]
+            vmax = self.config["model"]["max_value"]
+            norm_val = max(0.0, min(1.0, (val - vmin) / (vmax - vmin)))
+            # print("norm_val")
+            # print(norm_val)
+            rgb = self.led.colormap_to_rgb(norm_val, "jet")
+            # rgb = self.led.set_percentage(norm_val, cmap_name="jet")
+            # print("rgb")
+            # print(rgb)
+            self.led.set_all(rgb)
             # TODO: ovdje implementiraj drukciju logiku
             # npr spektar zelena - zuta - crvena, ali kako znati kako su druge obojene  
-            self.led.set_percentage(self.output / 4, 800, (255, 0, 0), "l2r")
+            # self.led.set_percentage(self.output / 4, 800, (255, 0, 0), "l2r")
             self.layer += 1
             await asyncio.sleep(2)
 

@@ -50,6 +50,8 @@ def load_model2(config):
         "num_layers": raw["num_layers"],
         "out_channels": raw["out_channels"],   # = hidden_channels (64)
         "state_dict": raw["encoder"],          # samo encoder ide node-ovima
+        "min_value": raw["min_value"],
+        "max_value": raw["max_value"]
     }
 
     # scorer spremi centralno ako ga želiš kasnije koristiti
