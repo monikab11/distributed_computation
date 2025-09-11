@@ -187,8 +187,8 @@ class Node:
             # print(norm_val)
             rgb = self.led.colormap_to_rgb(norm_val, "jet")
             # rgb = self.led.set_percentage(norm_val, cmap_name="jet")
-            # print("rgb")
-            # print(rgb)
+            print("rgb")
+            print(rgb)
             self.led.set_all(rgb)
             # TODO: ovdje implementiraj drukciju logiku
             # npr spektar zelena - zuta - crvena, ali kako znati kako su druge obojene  
