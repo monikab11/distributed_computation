@@ -141,6 +141,8 @@ class Node:
         async def handle_config(reader, writer):
             data = await reader.read()
             handler_data["config"] = pickle.loads(data)
+            print("HANDLER: ")
+            print(handler_data["config"]["model"])
             writer.close()
             await writer.wait_closed()
             config_received.set()
