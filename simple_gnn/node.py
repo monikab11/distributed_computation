@@ -177,8 +177,8 @@ class Node:
         while self.layer < self.model.num_layers:
             await self.exchange_and_update()
             print(f"Layer {self.layer} output: {self.output}\n")
-            # print(self.config["model"]["min_value"])
-            # print(self.config["model"]["max_value"])
+            print(self.config["model"]["min_value"])
+            print(self.config["model"]["max_value"])
             val = self.output
             vmin = self.config["model"]["min_value"]
             vmax = self.config["model"]["max_value"]
@@ -199,6 +199,7 @@ class Node:
         print()
         # print(f"Final value: {self.value.item()}")
         print(f"Final value: {self.output}")
+        await asyncio.sleep(5)
 
     async def exchange_and_update(self):
         # Send value to all neighbors.
