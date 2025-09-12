@@ -192,6 +192,13 @@ class Node:
             print("rgb")
             print(rgb)
             self.led.set_all(rgb)
+            h, s, v = self.led.rgb2hsv(*rgb)
+            v = int(v * 0.5)
+            hsv = (h, s, v)
+            print("hsv")
+            print(hsv)
+            # rgb = self.led.hsv2rgb(h, s, v)
+            self.led.set_all(hsv, 'hsv')
             # TODO: ovdje implementiraj drukciju logiku
             # npr spektar zelena - zuta - crvena, ali kako znati kako su druge obojene  
             # self.led.set_percentage(self.output / 4, 800, (255, 0, 0), "l2r")
