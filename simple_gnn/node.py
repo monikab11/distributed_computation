@@ -182,11 +182,13 @@ class Node:
             print(self.config["model"]["min_value"])
             print(self.config["model"]["max_value"])
             val = self.output
-            vmin = self.config["model"]["min_value"]
+            vmin = 0 #self.config["model"]["min_value"]
             vmax = self.config["model"]["max_value"]
+            val = max(0.0, val)
             norm_val = max(0.0, min(1.0, (val - vmin) / (vmax - vmin)))
             # print("norm_val")
             # print(norm_val)
+            
             rgb = self.led.colormap_to_rgb(norm_val, "jet")
             # rgb = self.led.set_percentage(norm_val, cmap_name="jet")
             print("rgb")
