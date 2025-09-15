@@ -182,10 +182,8 @@ class Node:
             print(self.config["model"]["min_value"])
             print(self.config["model"]["max_value"])
             val = self.output
-            vmin = 0 #self.config["model"]["min_value"]
+            vmin = self.config["model"]["min_value"]
             vmax = self.config["model"]["max_value"]
-            val = max(0.0, val)
-            val = min(1.0, val)
             norm_val = max(0.0, min(1.0, (val - vmin) / (vmax - vmin)))
             # print("norm_val")
             # print(norm_val)
@@ -196,7 +194,7 @@ class Node:
             print(rgb)
             self.led.set_all(rgb)
             h, s, v = self.led.rgb2hsv(*rgb)
-            v = int(v * 0.5)
+            v = int(v * 0.2)
             hsv = (h, s, v)
             print("hsv")
             print(hsv)
